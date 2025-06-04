@@ -130,4 +130,105 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   window.addEventListener("scroll", showModalInFooter);
+
+  //cards
+
+  class Card {
+    constructor(src, alt, title, descr, price, parent, ...classes) {
+      (this.src = src),
+        (this.alt = alt),
+        (this.title = title),
+        (this.descr = descr);
+      (this.price = price),
+        (this.parent = document.querySelector(parent)),
+        (this.classes = classes);
+    }
+    render() {
+      if (this.classes.length == 0) {
+        this.classes = [".menu__item"];
+      }
+      const card = document.createElement("div");
+      this.classes.forEach((item) => {
+        card.classList.add(item.slice(1));
+      });
+      card.innerHTML = `
+                    <img src=${this.src} alt=${this.alt}>
+                    <h3 class="menu__item-subtitle">${this.title}</h3>
+                    <div class="menu__item-descr">${this.descr}</div>
+                    <div class="menu__item-divider"></div>
+                    <div class="menu__item-price">
+                        <div class="menu__item-cost">Цена:</div>
+                        <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
+                    </div>
+                `;
+      this.parent.append(card);
+    }
+  }
+  new Card(
+    "img/tabs/vegy.jpg",
+    "vegy",
+    'Меню "Фитнес"',
+    'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих \n овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной \n ценой и высоким качеством!',
+    229,
+    ".menu__field .container",
+    ".menu__item"
+  ).render();
+
+  new Card(
+    "img/tabs/elite.jpg",
+    "elite",
+    "Меню “Премиум”",
+    "В меню “Премиум” мы используем не только красивый дизайн упаковки, но\n и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода\n в ресторан!",
+    550,
+    ".menu__field .container",
+    ".menu__item"
+  ).render();
+
+  new Card(
+    "img/tabs/post.jpg",
+    "post",
+    'Меню "Постное"',
+    "Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие\nпродуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное\n количество белков за счет тофу и импортных вегетарианских стейков.",
+    430,
+    ".menu__field .container"
+  ).render();
+
+  const forms = document.querySelectorAll("form");
+
+  const message = {
+    loading: "loading",
+    sucsess: "thanks",
+    failure: "(",
+  };
+
+  forms.forEach((item) => {
+    postData(item);
+  });
+
+  function postData(form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const statusMessage = document.createElement("div");
+      statusMessage.classList.add("status");
+      statusMessage.textContent = message.loading;
+      form.append(statusMessage);
+
+      const request = new XMLHttpRequest();
+      request.open("POST", "server.php");
+      request.setRequestHeader("Content-type", "multipart/form-data");
+      const formData = new FormData(form);
+
+      request.send(formData);
+
+      request.addEventListener("load", () => {
+        if (request.status === 200) {
+          console.log(request.response);
+          statusMessage.textContent = message.sucsess;
+        } else {
+          statusMessage.textContent = message.failure;
+        }
+      });
+    });
+  }
 });
