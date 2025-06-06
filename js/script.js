@@ -162,34 +162,6 @@ document.addEventListener("DOMContentLoaded", () => {
       this.parent.append(card);
     }
   }
-  new Card(
-    "img/tabs/vegy.jpg",
-    "vegy",
-    'Меню "Фитнес"',
-    'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих \n овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной \n ценой и высоким качеством!',
-    229,
-    ".menu__field .container",
-    ".menu__item"
-  ).render();
-
-  new Card(
-    "img/tabs/elite.jpg",
-    "elite",
-    "Меню “Премиум”",
-    "В меню “Премиум” мы используем не только красивый дизайн упаковки, но\n и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода\n в ресторан!",
-    550,
-    ".menu__field .container",
-    ".menu__item"
-  ).render();
-
-  new Card(
-    "img/tabs/post.jpg",
-    "post",
-    'Меню "Постное"',
-    "Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие\nпродуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное\n количество белков за счет тофу и импортных вегетарианских стейков.",
-    430,
-    ".menu__field .container"
-  ).render();
 
   const forms = document.querySelectorAll("form");
 
@@ -200,10 +172,41 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   forms.forEach((item) => {
-    postData(item);
+    bindPostData(item);
   });
 
-  function postData(form) {
+  const postData = async (URL, data) => {
+    const res = await fetch(URL, {
+      method: "POST",
+      headers: { "Content-type": "application/json" },
+      body: data,
+    });
+    return await res.json();
+  };
+
+  const getResorse = async (URL) => {
+    const res = await fetch(URL);
+
+    if (!res.ok) {
+      throw new Error(`Could not fetch${url},status ${res.status}`);
+    }
+
+    return await res.json();
+  };
+  getResorse("http://localhost:3000/menu").then((data) => {
+    data.forEach(({ img, altimg, title, descr, price }) => {
+      new Card(
+        img,
+        altimg,
+        title,
+        descr,
+        price,
+        ".menu .container"
+      ).render();
+    });
+  });
+
+  function bindPostData(form) {
     form.addEventListener("submit", (e) => {
       e.preventDefault();
 
@@ -214,16 +217,9 @@ document.addEventListener("DOMContentLoaded", () => {
       margin:0 auto;`;
       form.insertAdjacentElement("afterend", statusMessage);
       const formData = new FormData(form);
-      const object = {};
-      formData.forEach((value, key) => {
-        object[key] = value;
-      });
+      const json = JSON.stringify(Object.fromEntries(formData.entries()));
 
-      fetch("server.php", {
-        method: "POST",
-        body: JSON.stringify(object),
-      })
-        .then((data) => data.text())
+      postData("http://localhost:3000/requests", json)
         .then((data) => {
           console.log(data);
           showThanksModal(message.sucsess);
@@ -258,4 +254,8 @@ document.addEventListener("DOMContentLoaded", () => {
       closeModal();
     }, 2000);
   }
+
+  fetch("http://localhost:3000/menu")
+    .then((data) => data.json())
+    .then((res) => console.log(res));
 });
